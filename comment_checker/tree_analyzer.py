@@ -70,6 +70,31 @@ class CommentedFunctionNode(object):
         pass
 
     def __repr__(self):
-        pass
+        return self.node_ast.name
+    
+    def diff_code(self, other_node):
+        """
+        compare this CommentedFunctionNode to another, checking if there
+        are any differences in the function body of the two functions
+        """
+        if not isinstance(other_node, CommentedFunctionNode):
+            return False
+        return self.node_ast.body == other_node.node_ast.body
 
+    def diff_signature(self, other_node):
+        """
+        compare this CommentedFunctionNode to another, checking if there
+        are any differences in the method signature of the two functions.
+        """
+        if not isinstance(other_node, CommentedFunctionNode):
+            return False
+        return self.node_ast.args == other_node.node_ast.args
 
+    def diff_docstring(self, other_node):
+        """
+        compare this CommentedFunctionNode to another, checking if there
+        are any differences in the docstring of the two functions.
+        """
+        # if not isinstance(other_node, CommentedFunctionNode):
+            # return False
+        return self.docstring == other_node.docstring
