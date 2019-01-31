@@ -12,7 +12,8 @@ from _ast import (
 
 from ..tree_analyzer import (
     TreeAnalyzer,
-    CommentedFunctionNode
+    CommentedFunctionNode,
+    compare_asts
 )
 
 
@@ -42,7 +43,7 @@ class MyClass(object):
     assert 'non-existent-file.py:MyClass.method_2' in tree._functions
 
 
-def dont_test_function_collected_properly():
+def test_function_collected_properly():
     """
     Make sure that all of the pertinent components of a function
     are collected when the AST is parsed
@@ -78,16 +79,8 @@ class MyClass(object):
         returns=None
     )
     assert tree._functions['non-existent-file.py:foo'].docstring == 'baz!'
-    # print(ast.dump(tree._functions['non-existent-file.py:foo'].node_ast))
-    # print(ast.dump(expected_function))
-    assert tree._functions['non-existent-file.py:foo'].node_ast == expected_function
-
-
-
-
-
-
-
+    foo_body = tree._functions['non-existent-file.py:foo'].node_ast
+    assert compare_asts(foo_body, expected_function)
 
 
 def test_docstring_changes_detected():
