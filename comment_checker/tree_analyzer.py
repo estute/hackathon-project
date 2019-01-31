@@ -77,24 +77,46 @@ class CommentedFunctionNode(object):
         compare this CommentedFunctionNode to another, checking if there
         are any differences in the function body of the two functions
         """
-        if not isinstance(other_node, CommentedFunctionNode):
-            return False
-        return self.node_ast.body == other_node.node_ast.body
+        return compare_asts(self.node_ast.body, other_node.node_ast.body)
 
     def diff_signature(self, other_node):
         """
         compare this CommentedFunctionNode to another, checking if there
         are any differences in the method signature of the two functions.
         """
-        if not isinstance(other_node, CommentedFunctionNode):
-            return False
-        return self.node_ast.args == other_node.node_ast.args
+        return compare_asts(self.node_ast.args, other_node.node_ast.args)
 
     def diff_docstring(self, other_node):
         """
         compare this CommentedFunctionNode to another, checking if there
         are any differences in the docstring of the two functions.
         """
-        # if not isinstance(other_node, CommentedFunctionNode):
-            # return False
+        if not isinstance(other_node, CommentedFunctionNode):
+            return False
         return self.docstring == other_node.docstring
+
+
+def compare_asts(former, latter):
+    """
+    recursively compare two asts for equivalency
+    """
+    if type(former) != type(latter):
+        return False
+    if isinstance(former, ast.AST):
+        for node_name, node_value in former.__dict__.items():
+            # Do not compare the components of the AST that are specific
+            # to the actual text of the source file
+            if node_name in ['lineno', 'col_offset', 'ctx']:
+                continue
+            if not compare_asts(node_value, getattr(latter, node_name)):
+                return False
+        return True
+    elif isinstance(former, list):
+        return all(
+            map(
+                lambda pair: compare_asts(pair[0], pair[1]),
+                zip(former, latter)
+            )
+        )
+    else:
+        return former == latter
