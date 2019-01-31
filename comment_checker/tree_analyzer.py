@@ -1,4 +1,5 @@
 import ast
+import itertools
 from _ast import ClassDef, FunctionDef
 
 
@@ -115,7 +116,7 @@ def compare_asts(former, latter):
         return all(
             map(
                 lambda pair: compare_asts(pair[0], pair[1]),
-                zip(former, latter)
+                itertools.zip_longest(former, latter)
             )
         )
     else:

@@ -142,3 +142,63 @@ class MyClass(object):
     assert not tree_a._functions['non-existent-file.py:foo'].diff_docstring(
         tree_c._functions['non-existent-file.py:foo']
     )
+
+def test_signature_changes_detected():
+    tree_a = TreeAnalyzer('non-existent-file.py')
+    initial_code = """
+garbage_variable = 3
+
+def foo(bar):
+    \"\"\"
+    baz!
+    \"\"\"
+    return bar
+
+class MyClass(object):
+
+    def method_1(a):
+        return a
+"""
+    tree_a.visit(ast.parse(initial_code))
+
+    tree_b = TreeAnalyzer('non-existent-file.py')
+    unchanged_docstring_code = """
+garbage_variable_list = [1, 3]
+
+def foo(bar):
+    \"\"\"
+    baz!
+    \"\"\"
+    return bar
+
+class MyClass(object):
+
+    def method_1(a):
+        return 'unrelated change'
+"""
+    tree_b.visit(ast.parse(unchanged_docstring_code))
+
+    assert tree_a._functions['non-existent-file.py:foo'].diff_signature(
+        tree_b._functions['non-existent-file.py:foo']
+    )
+
+    tree_c = TreeAnalyzer('non-existent-file.py')
+    changed_docstring_code = """
+garbage_variable = 3
+
+def foo(bar=3):
+    \"\"\"
+    baz!
+    \"\"\"
+    return bar
+
+class MyClass(object):
+
+    def method_1(a):
+        return a
+"""
+    tree_c.visit(ast.parse(changed_docstring_code))
+
+    assert not tree_a._functions['non-existent-file.py:foo'].diff_signature(
+        tree_c._functions['non-existent-file.py:foo']
+    )
