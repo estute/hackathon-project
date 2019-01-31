@@ -34,23 +34,27 @@ def get_corresponding_function(function_name, tree, source_file):
     def generate_qualified_name(source_file, function_name):
         return "{}:{}".format(source_file, function_name)
 
-    print("Looking for {} in the other AST".format(function_name))
+    # print("Looking for {} in the other AST".format(function_name))
     trimmed_name = trim_function_name(function_name)
     if trim_function_name(function_name) in [trim_function_name(f) for f in tree._functions]:
-        print("Found a match")
+        # print("Found a match")
+        print("Comparing {}".format(trimmed_name))
         return tree._functions[generate_qualified_name(source_file, trimmed_name)]
     else:
-        print("Could not find a match. Skipping")
+        # print("Could not find a match. Skipping")
         return False
 
 def main():
 
-    old_file_name = os.getenv('OLD_FILE_NAME', 'data/old_version.py')
-    new_file_name = os.getenv('NEW_FILE_NAME', 'data/new_version.py')
+    # old_file_name = os.getenv('OLD_FILE_NAME', 'data/old_version.py')
+    # new_file_name = os.getenv('NEW_FILE_NAME', 'data/new_version.py')
+    old_file_name = os.getenv('OLD_FILE_NAME', 'data/old_code.py')
+    new_file_name = os.getenv('NEW_FILE_NAME', 'data/new_code.py')
     old_tree = analyze_tree(old_file_name)
     new_tree = analyze_tree(new_file_name)
 
     for function_name, function in new_tree._functions.items():
+        flag = False
         print("="*100)
         corr_func = get_corresponding_function(function_name, old_tree, old_file_name)
 
@@ -65,15 +69,21 @@ def main():
         signature_change = not function.diff_signature(corr_func)
 
         if not code_change and not signature_change:
-            print("But the code didn't change. This is ok for now")
+            print("No need to flag this function")
+            continue
 
         if signature_change and stale_doc_string:
-            print("The method signature of function {} changed between {} and {}. but the docstring did not!".format(function_name, old_file_name, new_file_name))
+            flag = True
+            print("Method signature changed between {} and {}, but the docstring did not!".format(old_file_name, new_file_name))
             print("Consider updating it")
 
         if code_change and stale_doc_string:
-            print("The body of function {} changed between {} and {}. but the docstring did not!".format(function_name, old_file_name, new_file_name))
+            flag = True
+            print("Function body changed between {} and {}, but the docstring did not!".format(old_file_name, new_file_name))
             print("Consider updating it")
+
+        if not flag:
+            print("No need to flag this function")
 
 
 
